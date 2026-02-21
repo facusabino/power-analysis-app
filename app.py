@@ -263,7 +263,7 @@ inputs = PowerInputs(
 # MAIN AREA WITH TABS
 # =====================================================================
 
-tab_results, tab_scenarios = st.tabs(["Results", "Scenario Comparison"])
+tab_results, tab_scenarios, tab_help = st.tabs(["Results", "Scenario Comparison", "Help"])
 
 # --- Results Tab ---
 with tab_results:
@@ -412,3 +412,118 @@ with tab_scenarios:
                     "scenario_comparison.csv",
                     "text/csv",
                 )
+
+
+# --- Help Tab ---
+with tab_help:
+    st.subheader("User Guide")
+
+    # Download link for the full guide
+    import pathlib
+    guide_path = pathlib.Path(__file__).parent / "user_guide.md"
+    if guide_path.exists():
+        guide_text = guide_path.read_text(encoding="utf-8")
+        st.download_button(
+            "Download full user guide (Markdown)",
+            guide_text,
+            "Power_Panel_User_Guide.md",
+            "text/markdown",
+        )
+
+    st.markdown("---")
+
+    with st.expander("Design Types", expanded=True):
+        st.markdown("""
+| Design | Description |
+|--------|-------------|
+| **DID** | Difference-in-Differences — compares changes over time between treatment and comparison groups. Simplest design. |
+| **CITS** | Comparative Interrupted Time Series — also models time trends (slopes). Requires more time periods but can detect trend changes. Needs a comparison group. |
+| **ITS** | Interrupted Time Series — models the time trend for treated units only. No comparison group required. |
+
+**CITS/ITS model specifications:**
+- **Fully interacted**: Separate pre/post slopes for each group. Most flexible, most data-hungry.
+- **Common slopes**: Shared time trend across groups. More efficient if the assumption holds.
+- **Discrete**: Indicator variables for each post-period (DID-style). Use when effects may not follow a linear trend.
+""")
+
+    with st.expander("Analysis Modes"):
+        st.markdown("""
+- **Calculate MDE given sample size**: You provide cluster counts → app computes the minimum detectable effect size at each power level.
+- **Calculate required clusters given target MDE**: You provide a target MDE → app computes how many clusters you need.
+
+**MDE** is expressed in standard deviation units (Cohen's d):
+
+| MDE | Interpretation |
+|-----|---------------|
+| 0.10 | Very small — requires very large samples |
+| 0.20 | Small — typical target for well-powered studies |
+| 0.30 | Small-to-medium |
+| 0.50 | Medium |
+""")
+
+    with st.expander("Timing Groups & Staggered Treatment"):
+        st.markdown("""
+A **timing group** is a set of clusters that begin treatment at the same time.
+
+- **1 group**: All treated clusters start simultaneously (simple design).
+- **2+ groups**: Staggered rollout — different clusters start treatment in different periods.
+
+For each group, set the **start period** (must be ≥ 2, in increasing order) and either:
+- **MDE mode**: Number of treatment/comparison clusters in this group.
+- **Required clusters mode**: Share (proportion) of total clusters allocated to this group (shares must sum to 1.0).
+
+**Post-period options:**
+- *Average across all post-periods*: Usually provides the most power.
+- *Single post-period*: Effect at a specific time point or exposure duration.
+""")
+
+    with st.expander("Error Structure"):
+        st.markdown("""
+**Autocorrelation** controls how outcomes within a cluster correlate over time:
+- **AR(1)**: Correlation decays geometrically — rho at lag 1, rho² at lag 2, etc.
+- **Constant**: Equal correlation (rho) at all lags.
+- **None**: No temporal correlation.
+
+**Key parameters:**
+- **Cluster autocorrelation (rho)**: Correlation of cluster means over time. Higher rho → *more* variance in DID → *lower* power.
+- **Individual autocorrelation (phi)**: Within-person correlation (longitudinal panels only). Higher phi → *less* residual variance → *better* power.
+- **ICC**: Proportion of total variance between clusters. Higher ICC → cluster-level variance dominates → need more clusters.
+""")
+
+    with st.expander("Precision & Testing"):
+        st.markdown("""
+- **R²yx** (covariates): Proportion of outcome variance explained by covariates. Higher → less residual variance → better power. Free power if you have good covariates.
+- **R²tx** (treatment-covariate correlation): If covariates predict treatment, this *reduces* effective treatment variation → *hurts* power. Usually small in randomized designs.
+- **Design effect**: Multiplicative adjustment for survey weights. Default 1.0.
+- **Alpha**: Significance level (default 0.05).
+- **Two-tailed**: Use for most applications. One-tailed is more powerful but only appropriate with a strong directional hypothesis.
+""")
+
+    with st.expander("Scenario Comparison"):
+        st.markdown("""
+The **Scenario Comparison** tab generates a grid of MDE (or required clusters) across different ICC and R²yx values, holding all other parameters fixed. This is useful for:
+
+1. **Grant proposals**: Show reviewers that your study is well-powered under a range of plausible assumptions.
+2. **Sensitivity analysis**: See which parameters most affect your power.
+3. **Study planning**: Identify where your design becomes underpowered.
+
+Enter comma-separated ICC and R²yx values, choose a fixed power level, and click **Generate Scenario Table**. The output is designed for easy copy-paste into reports.
+""")
+
+    with st.expander("Tips for Practitioners"):
+        st.markdown("""
+1. **Start with the scenario comparison.** See how sensitive your MDE is to ICC and R²yx before committing to a sample size.
+2. **ICC matters more than you think.** Going from ICC = 0.05 to 0.15 can double required sample size.
+3. **Covariates are free power.** Even modest R²yx = 0.20 meaningfully improves power without adding clusters.
+4. **More time periods help CITS/ITS more than DID.** For CITS/ITS, more periods directly improve slope estimation.
+5. **Longitudinal > Cross-sectional for power** (all else equal), but longitudinal panels are harder to collect.
+6. **Averaging post-periods** is usually more powerful than looking at a single time point.
+""")
+
+    st.markdown("---")
+    st.markdown(
+        "*Based on Schochet, P.Z. (2022). Statistical Power for Estimating Treatment Effects "
+        "Using Difference-in-Differences and Comparative Interrupted Time Series Estimators "
+        "with Variation in Treatment Timing. "
+        "Journal of Educational and Behavioral Statistics, 48(6), 713–751.*"
+    )
