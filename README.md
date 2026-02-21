@@ -16,7 +16,13 @@ A Streamlit web application for conducting power analyses for commonly used pane
 - **Interactive UI**: collapsible parameter sections, dynamic timing group configuration, interactive Plotly charts, and CSV export
 - **Built-in help**: in-app Help tab with parameter reference, plus a detailed standalone [user guide](user_guide.md)
 
-## Quick Start
+## Live App
+
+**https://power-analysis-app.streamlit.app**
+
+No installation required — open the link and start using it.
+
+## Running Locally
 
 ```bash
 pip install -r requirements.txt

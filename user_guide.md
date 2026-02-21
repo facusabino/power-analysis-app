@@ -12,7 +12,15 @@ The app supports three research designs, two analysis modes, and a scenario comp
 
 ## 2. Getting Started
 
-### Installation
+### Online Access
+
+The app is available online at no cost — no installation required:
+
+**https://power-analysis-app.streamlit.app**
+
+### Running Locally (optional)
+
+If you prefer to run the app on your own machine:
 
 ```bash
 pip install -r requirements.txt
