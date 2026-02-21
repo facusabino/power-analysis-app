@@ -14,6 +14,7 @@ A Streamlit web application for conducting power analyses for commonly used pane
 - **Scenario comparison**: generate tables of MDE values across grids of ICC and R-squared values — designed for easy copy-paste into reports
 - **Flexible designs**: supports staggered treatment timing, AR(1) and constant autocorrelation structures, cross-sectional and longitudinal panels, uneven time spacing, and model covariates
 - **Interactive UI**: collapsible parameter sections, dynamic timing group configuration, interactive Plotly charts, and CSV export
+- **Built-in help**: in-app Help tab with parameter reference, plus a detailed standalone [user guide](user_guide.md)
 
 ## Quick Start
 
@@ -34,6 +35,7 @@ The app will open in your browser at `http://localhost:8501`.
 | `validation.py` | Input validation with structured error messages |
 | `scenarios.py` | ICC x R-squared scenario grid generation |
 | `verify_power.py` | Independent verification script — benchmarks against the paper |
+| `user_guide.md` | Detailed user guide covering all parameters, interpretation, and tips |
 
 ## Verification
 
