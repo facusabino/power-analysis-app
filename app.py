@@ -553,8 +553,9 @@ Let $A_k$ = number of post-periods and $B_k$ = number of pre-periods for group $
 
 **Autocorrelation summary terms** (cluster level, computed from $\\rho$):
 
-$$\\rho_{\\text{post}} = \\frac{2}{A(A-1)} \\sum_{i < j,\\, i,j \\in \\text{post}} \\rho^{|t_j - t_i|}, \\quad
-\\rho_{\\text{pre}} = \\frac{2}{B(B-1)} \\sum_{i < j,\\, i,j \\in \\text{pre}} \\rho^{|t_j - t_i|}$$
+$$\\rho_{\\text{post}} = \\frac{2}{A(A-1)} \\sum_{i < j,\\, i,j \\in \\text{post}} \\rho^{|t_j - t_i|}$$
+
+$$\\rho_{\\text{pre}} = \\frac{2}{B(B-1)} \\sum_{i < j,\\, i,j \\in \\text{pre}} \\rho^{|t_j - t_i|}$$
 
 $$\\rho_{\\text{pp}} = \\frac{1}{AB} \\sum_{i \\in \\text{post}} \\sum_{j \\in \\text{pre}} \\rho^{|t_i - t_j|}$$
 
