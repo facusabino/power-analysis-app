@@ -36,7 +36,7 @@ The app follows a strict separation: **`power_engine.py` has zero Streamlit impo
   - `compute_df()` — degrees of freedom vary by design/spec/mode (e.g. DID avg: `M*P - M - K*P - sum_ak`; CITS fully-interacted avg: `M*P - 8*K`)
   - `compute_required_clusters()` — secant method, max 25 iterations, tol 1e-6; returns `{'m_opt': int, 'converged': bool}` or `None`
 - **`scenarios.py`** — `generate_scenario_grid(base_inputs, icc_values, r2yx_values, fixed_power=0.80) -> pd.DataFrame`. Grid rows = ICC, columns = R2yx, cells = MDE or clusters at fixed power.
-- **`app.py`** (~530 lines) — Streamlit UI with sidebar inputs (5 expander sections) and 3 main tabs (Results, Scenario Comparison, Help).
+- **`app.py`** (~640 lines) — Streamlit UI with sidebar inputs (5 expander sections) and 3 main tabs (Results, Scenario Comparison, Help). The Help tab has 8 expanders, including a "Statistical Formulas" section with rendered LaTeX for all variance, MDE, and df formulas.
 - **`verify_power.py`** — Benchmarks against Schochet (2022) Table 3 and independent formula implementations.
 
 ### Data Flow
