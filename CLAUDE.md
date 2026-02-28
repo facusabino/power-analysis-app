@@ -30,9 +30,12 @@ The app follows a strict separation: **`power_engine.py` has zero Streamlit impo
 ### Module Responsibilities
 
 - **`config.py`** — Enums (`DesignType`, `CITSSpec`, `AnalysisMode`, `PanelType`, `AutocorrStructure`, etc.) and the `PowerInputs` dataclass that carries all parameters to the engine.
-- **`validation.py`** — `validate_inputs(PowerInputs) -> ValidationResult` with error messages.
-- **`power_engine.py`** (~1000 lines) — Core computation: `run_power_analysis(inputs)` is the entry point. Internally calls `setup_time_periods` → `compute_variance` → `compute_mde` or `compute_required_clusters` per power level.
-- **`scenarios.py`** — `generate_scenario_grid()` sweeps ICC × R² combinations calling `run_power_analysis` for each cell.
+- **`validation.py`** — `validate_inputs(PowerInputs) -> ValidationResult`. `ValidationResult` has `is_valid: bool`, `errors: List[str]`, and `add_error(msg)`.
+- **`power_engine.py`** (~1000 lines) — Core computation: `run_power_analysis(inputs)` is the entry point. Internally calls `setup_time_periods` → `compute_variance` → `compute_mde` or `compute_required_clusters` per power level. Key internal functions:
+  - `calc_rho()` — autocorrelation calculator with 12 cases + 3 special cases (90, 100, 110); AR1 uses `rho^time_distance`, constant uses flat `rho`
+  - `compute_df()` — degrees of freedom vary by design/spec/mode (e.g. DID avg: `M*P - M - K*P - sum_ak`; CITS fully-interacted avg: `M*P - 8*K`)
+  - `compute_required_clusters()` — secant method, max 25 iterations, tol 1e-6; returns `{'m_opt': int, 'converged': bool}` or `None`
+- **`scenarios.py`** — `generate_scenario_grid(base_inputs, icc_values, r2yx_values, fixed_power=0.80) -> pd.DataFrame`. Grid rows = ICC, columns = R2yx, cells = MDE or clusters at fixed power.
 - **`app.py`** (~530 lines) — Streamlit UI with sidebar inputs (5 expander sections) and 3 main tabs (Results, Scenario Comparison, Help).
 - **`verify_power.py`** — Benchmarks against Schochet (2022) Table 3 and independent formula implementations.
 
@@ -43,6 +46,12 @@ Sidebar widgets → PowerInputs dataclass → validate_inputs() → run_power_an
   → setup_time_periods() → compute_variance() → compute_mde/compute_required_clusters per power level
   → DataFrame → Plotly chart + table + CSV download
 ```
+
+### Engine Return Shapes (all functions return dicts)
+
+- `setup_time_periods()` → `{tpp, tbar, ssqt, tbara, ssqta, pp_diff, bk, ak, tbar_full, ssqt_full}`
+- `compute_variance()` → `{did_tot, cits_tot, its_tot, sumak, sumiq}`
+- `run_power_analysis()` → `{results, design_label, variance, error?}`
 
 ## Critical Implementation Details
 

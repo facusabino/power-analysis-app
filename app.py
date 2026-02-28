@@ -520,6 +520,118 @@ Enter comma-separated ICC and R²yx values, choose a fixed power level, and clic
 6. **Averaging post-periods** is usually more powerful than looking at a single time point.
 """)
 
+    with st.expander("Statistical Formulas"):
+        st.markdown("""
+This section shows the mathematical formulas underlying each power calculation.
+Notation follows Schochet (2022). Subscript $k$ indexes timing groups ($k = 1, \\ldots, K$).
+
+---
+
+### Minimum Detectable Effect (all designs)
+
+$$\\text{MDE} = \\left(t_{1-\\alpha/2,\\,\\nu} + t_{\\beta,\\,\\nu}\\right) \\sqrt{\\text{Var}}$$
+
+- $\\alpha$ = significance level, $\\nu$ = degrees of freedom, $\\beta = 1 - \\text{power}$
+- For a one-tailed test, replace $\\alpha/2$ with $\\alpha$
+- $t_{p,\\nu}$ is the $p$-th quantile of the $t$-distribution with $\\nu$ df
+
+---
+
+### Precision Factor (all designs)
+
+$$r^2 = \\frac{1 - R^2_{yx}}{1 - R^2_{tx}}$$
+
+- $R^2_{yx}$: proportion of outcome variance explained by covariates → reduces variance
+- $R^2_{tx}$: correlation between treatment assignment and covariates → increases variance
+- Default: $r^2 = 1$ (no covariates)
+
+---
+
+### DID Variance — Cross-Sectional, Average Post-Period
+
+Let $A_k$ = number of post-periods and $B_k$ = number of pre-periods for group $k$.
+
+**Autocorrelation summary terms** (cluster level, computed from $\\rho$):
+
+$$\\rho_{\\text{post}} = \\frac{2}{A(A-1)} \\sum_{i < j,\\, i,j \\in \\text{post}} \\rho^{|t_j - t_i|}, \\quad
+\\rho_{\\text{pre}} = \\frac{2}{B(B-1)} \\sum_{i < j,\\, i,j \\in \\text{pre}} \\rho^{|t_j - t_i|}$$
+
+$$\\rho_{\\text{pp}} = \\frac{1}{AB} \\sum_{i \\in \\text{post}} \\sum_{j \\in \\text{pre}} \\rho^{|t_i - t_j|}$$
+
+For a **constant** autocorrelation structure, $\\rho^{|\\text{lag}|}$ is replaced by the flat value $\\rho$.
+
+**Cluster-level variance term:**
+
+$$\\theta_k = \\text{ICC} \\left[ \\frac{1 + \\rho_{\\text{post}}(A_k - 1)}{A_k} + \\frac{1 + \\rho_{\\text{pre}}(B_k - 1)}{B_k} - 2\\rho_{\\text{pp}} \\right]$$
+
+**Individual-level variance term:**
+
+$$e_k = \\frac{1 - \\text{ICC}}{N} \\left( \\frac{1}{A_k} + \\frac{1}{B_k} \\right)$$
+
+**Variance contribution of group $k$:**
+
+$$V_k = A_k^2 \\left(\\frac{1}{M_T} + \\frac{1}{M_C}\\right) r^2 \\left(\\theta_k + e_k\\right)$$
+
+**Total DID variance** (aggregated across $K$ groups):
+
+$$\\text{Var}_{\\text{DID}} = \\text{deff} \\cdot \\frac{\\displaystyle\\sum_k V_k}{\\left(\\displaystyle\\sum_k A_k\\right)^2}$$
+
+---
+
+### Longitudinal Panel Extension
+
+For longitudinal panels, the individual-level term $e_k$ is replaced by a term with the same
+structure as $\\theta_k$ but using the **within-person autocorrelation** $\\phi$ in place of $\\rho$,
+scaled by $(1-\\text{ICC})/N$ instead of ICC.
+
+---
+
+### CITS Addition — Fully Interacted Specification
+
+CITS adds a trend-correction term on top of the DID formula. Let
+$\\Delta_k = \\bar{t}_{\\text{post},k} - \\bar{t}_{\\text{pre},k}$ (difference of period means) and
+$S_k = \\sum_{t \\in \\text{pre}} (t - \\bar{t}_{\\text{pre},k})^2$ (sum of squared pre-period time deviations).
+
+The additional cluster-level term is:
+
+$$\\theta_{\\text{CITS},k} = \\text{ICC}\\left[ \\Delta_k^2\\left(\\frac{1}{S_k} + \\frac{(B_k-1)B_k\\,\\tilde{\\rho}_{\\text{pre}}}{S_k^2}\\right) + \\frac{2\\Delta_k B_k\\,\\tilde{\\rho}_{\\text{cross}}}{S_k} - \\frac{2\\Delta_k B_k\\,\\tilde{\\rho}_{\\text{pp}}}{S_k} \\right]$$
+
+where $\\tilde{\\rho}_{\\text{pre}},\\tilde{\\rho}_{\\text{cross}},\\tilde{\\rho}_{\\text{pp}}$ are time-weighted autocorrelation sums (see Schochet 2022, eq. 3–9).
+
+The individual-level addition is:
+
+$$e_{\\text{CITS},k} = \\frac{1-\\text{ICC}}{N} \\cdot \\frac{\\Delta_k^2}{S_k}$$
+
+**ITS** uses the same additions but replaces $(1/M_T + 1/M_C)$ with $1/M_T$ throughout (no comparison group).
+
+---
+
+### Degrees of Freedom
+
+| Design | Specification | Post-period | $\\nu$ |
+|--------|--------------|-------------|--------|
+| DID | — | Average | $MP - M - KP - \\sum A_k$ |
+| DID | — | Specific | $MP - M - n_q P - n_q$ |
+| CITS | Fully interacted | Average | $MP - 8K$ |
+| CITS | Common slopes | Average | $MP - 6K$ |
+| CITS | Discrete | Average | $MP - 4K - \\sum A_k$ |
+| ITS | Fully interacted | Average | $MP - 4K$ |
+| ITS | Common slopes | Average | $MP - 3K$ |
+| ITS | Discrete | Average | $MP - 2K - \\sum A_k$ |
+
+$M$ = total clusters, $P$ = time periods, $K$ = timing groups,
+$n_q$ = number of groups for which the specific post-period falls within their post-period range.
+
+---
+
+### Required Clusters (Mode 2)
+
+The app solves for the total $M$ such that $\\text{MDE}(M) = \\text{target MDE}$
+using a **secant method** (max 25 iterations, tolerance $10^{-6}$).
+Because the degrees of freedom also depend on $M$, the problem is solved iteratively
+rather than in closed form.
+""")
+
     st.markdown("---")
     st.markdown(
         "*Based on Schochet, P.Z. (2022). Statistical Power for Estimating Treatment Effects "
