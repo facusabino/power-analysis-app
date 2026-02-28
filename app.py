@@ -640,3 +640,6 @@ rather than in closed form.
         "with Variation in Treatment Timing. "
         "Journal of Educational and Behavioral Statistics, 48(6), 713–751.*"
     )
+    st.markdown(
+        "*Developed by [Facundo Herrera](https://facusabino.github.io/facu.sabino.github.io/)*"
+    )
