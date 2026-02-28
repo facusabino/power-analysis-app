@@ -59,3 +59,4 @@ Sidebar widgets → PowerInputs dataclass → validate_inputs() → run_power_an
 - **Variable naming from R**: The R variable `r2` (around line 1514 of the `.r` file) is actually `(1-r2yx)/(1-r2tx)` — a precision factor, not an R-squared. Variable names follow the R source for traceability.
 - **Reference R file**: `JEBS_Power_Panel_Dashboard_Schochet.r` (~3150 lines) is the original R Shiny app kept for reference.
 - **Verification**: All 6 benchmarks from Schochet (2022) Table 3 match exactly; independent formula checks match within < 0.0001.
+- **Streamlit LaTeX rendering**: `st.markdown()` supports `$...$` (inline) and `$$...$$` (display) math. Do not put a newline inside a `$$` block — Streamlit closes the block early and the remainder renders as raw LaTeX text. Each display formula must be a single unbroken line.
